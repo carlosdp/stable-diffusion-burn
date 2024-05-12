@@ -24,7 +24,8 @@ pub struct StableDiffusionConfig {}
 impl StableDiffusionConfig {
     pub fn init<B: Backend>(&self, device: &B::Device) -> StableDiffusion<B> {
         let n_steps = 1000;
-        let alpha_cumulative_products = offset_cosine_schedule_cumprod::<B>(n_steps, device).into();
+        let alpha_cumulative_products =
+            Param::from_tensor(offset_cosine_schedule_cumprod::<B>(n_steps, device));
 
         let autoencoder = AutoencoderConfig::new().init(device);
         let diffusion = UNetConfig::new().init(device);
@@ -223,7 +224,7 @@ impl<B: MyBackend> StableDiffusion<B> {
 use std::{f64::consts::PI, primitive};
 
 fn cosine_schedule<B: Backend>(n_steps: usize, device: &B::Device) -> Tensor<B, 1> {
-    Tensor::arange(1..n_steps + 1, device)
+    Tensor::arange(1..n_steps as i64 + 1, device)
         .float()
         .mul_scalar(PI * 0.5 / n_steps as f64)
         .cos()
@@ -235,7 +236,7 @@ fn offset_cosine_schedule<B: Backend>(n_steps: usize, device: &B::Device) -> Ten
     let start_angle = max_signal_rate.acos();
     let end_angle = min_signal_rate.acos();
 
-    let times = Tensor::arange(1..n_steps + 1, device).float();
+    let times = Tensor::arange(1..n_steps as i64 + 1, device).float();
 
     let diffusion_angles = times * ((end_angle - start_angle) / n_steps as f64) + start_angle;
     diffusion_angles.cos()

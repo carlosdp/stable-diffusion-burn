@@ -26,12 +26,11 @@ pub struct CLIPConfig {
 impl CLIPConfig {
     pub fn init<B: Backend>(&self, device: &B::Device) -> CLIP<B> {
         let token_embedding = nn::EmbeddingConfig::new(self.n_vocab, self.n_state).init(device);
-        let position_embedding = Tensor::random(
+        let position_embedding = Param::from_tensor(Tensor::random(
             [self.n_ctx, self.n_state],
             Distribution::Normal(0.0, 1.0),
             device,
-        )
-        .into();
+        ));
         let blocks = (0..self.n_layer)
             .into_iter()
             .map(|_| {

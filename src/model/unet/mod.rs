@@ -6,7 +6,7 @@ use burn::{
     nn::{
         self,
         conv::{Conv2d, Conv2dConfig},
-        PaddingConfig2d, GELU,
+        Gelu, PaddingConfig2d,
     },
     tensor::{activation::softmax, backend::Backend, module::embedding, Distribution, Int, Tensor},
 };
@@ -22,7 +22,7 @@ fn timestep_embedding<B: Backend>(
     max_period: usize,
 ) -> Tensor<B, 2> {
     let half = dim / 2;
-    let freqs = (Tensor::arange(0..half, &timesteps.device()).float()
+    let freqs = (Tensor::arange(0..half as i64, &timesteps.device()).float()
         * (-(max_period as f64).ln() / half as f64))
         .exp();
     let args = timesteps.float() * freqs;
@@ -566,7 +566,7 @@ pub struct GEGLUConfig {
 impl GEGLUConfig {
     fn init<B: Backend>(&self, device: &B::Device) -> GEGLU<B> {
         let proj = nn::LinearConfig::new(self.n_state_in, 2 * self.n_state_out).init(device);
-        let gelu = GELU::new();
+        let gelu = Gelu::new();
 
         GEGLU { proj, gelu }
     }
@@ -575,7 +575,7 @@ impl GEGLUConfig {
 #[derive(Module, Debug)]
 pub struct GEGLU<B: Backend> {
     proj: nn::Linear<B>,
-    gelu: GELU,
+    gelu: Gelu,
 }
 
 impl<B: Backend> GEGLU<B> {

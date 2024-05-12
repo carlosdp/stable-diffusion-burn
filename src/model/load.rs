@@ -67,11 +67,11 @@ pub fn load_linear<B: Backend>(
     let bias = load_tensor::<B, 1>("bias", path, device).ok();
 
     let record = nn::LinearRecord {
-        weight: weight.into(),
-        bias: bias.map(|t| t.into()),
+        weight: Param::from_tensor(weight),
+        bias: bias.map(|t| Param::from_tensor(t)),
     };
 
-    let linear: nn::Linear<B> = nn::LinearConfig::new(3, 3).init_with(record);
+    let linear: nn::Linear<B> = nn::LinearConfig::new(3, 3).init(device).load_record(record);
     Ok(linear)
 }
 
@@ -83,10 +83,12 @@ pub fn load_embedding<B: Backend>(
     let [n_vocab, n_state] = weight.dims();
 
     let record = nn::EmbeddingRecord {
-        weight: weight.into(),
+        weight: Param::from_tensor(weight),
     };
 
-    let embedding = nn::EmbeddingConfig::new(n_vocab, n_state).init_with(record);
+    let embedding = nn::EmbeddingConfig::new(n_vocab, n_state)
+        .init(device)
+        .load_record(record);
     Ok(embedding)
 }
 
@@ -101,12 +103,14 @@ pub fn load_layer_norm<B: Backend>(
     let [n_state] = weight.dims();
 
     let record = nn::LayerNormRecord {
-        gamma: weight.into(),
-        beta: bias.into(),
+        gamma: Param::from_tensor(weight),
+        beta: Param::from_tensor(bias),
         epsilon: <f64 as Module<B>>::into_record(eps),
     };
 
-    let layer_norm: nn::LayerNorm<B> = nn::LayerNormConfig::new(n_state).init_with(record);
+    let layer_norm: nn::LayerNorm<B> = nn::LayerNormConfig::new(n_state)
+        .init(device)
+        .load_record(record);
 
     Ok(layer_norm)
 }
@@ -149,8 +153,8 @@ pub fn load_conv2d<B: Backend>(
     let padding = nn::PaddingConfig2d::Explicit(padding[0], padding[1]);
 
     let record = conv::Conv2dRecord {
-        weight: weight.into(),
-        bias: bias.map(|t| t.into()),
+        weight: Param::from_tensor(weight),
+        bias: bias.map(|t| Param::from_tensor(t)),
         stride: <[usize; 2] as Module<B>>::into_record(stride),
         kernel_size: <[usize; 2] as Module<B>>::into_record(kernel_size),
         dilation: <[usize; 2] as Module<B>>::into_record(dilation),
@@ -165,7 +169,8 @@ pub fn load_conv2d<B: Backend>(
             .with_groups(n_group)
             .with_padding(padding)
             .with_bias(has_bias)
-            .init_with(record);
+            .init(device)
+            .load_record(record);
     Ok(conv2d)
 }
 

@@ -9,11 +9,12 @@ edition = "2021"
 wgpu-backend = ["burn-wgpu"]
 
 [dependencies]
-burn = "0.12.1"
-burn-ndarray = "0.12.1"
-burn-tch = "0.12.1"
-burn-autodiff = "0.12.1"
-burn-wgpu = {version = "0.12.1", optional = true}
+burn = "0.13.2"
+burn-ndarray = "0.13.2"
+burn-tch = "0.13.2"
+burn-autodiff = "0.13.2"
+burn-wgpu = {version = "0.13.2", optional = true}
+burn-import = "0.13.2"
 tch = "0.15.0"
 torch-sys = "0.15.0"
 serde = {version = "1.0.171", features = ["std", "derive"]}
